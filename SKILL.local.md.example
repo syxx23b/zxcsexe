@@ -1,0 +1,30 @@
+# 本机坐标覆盖（可选）
+
+本文件是模板。需要固定覆盖时，复制成同目录的 `SKILL.local.md` 并改内容；它是**给人看的备忘 + 给 agent 的现场提示**，SKILL.md 不依赖它。
+
+正常情况**不需要**这个文件：每个仓库 `Build-Installer.ps1` 头部已经写明了本机坐标，skill 会直接读脚本。只有当脚本头部缺失、或你想让 agent 免去"每次去找仓库"这一步时，才在这里写死。
+
+## 已知仓库入口
+
+| 仓库根 | 出包脚本 |
+| --- | --- |
+| `<SCADA 工程根>\Dsh_Scada` | `Build-Installer.ps1` |
+| `<SCADA 工程根>\Design` | `Build-Installer.ps1` |
+| `<SCADA 工程根>\Dsh_RestAPI` | `Build-Installer.ps1` |
+
+（示例而已：实测这三个仓库在同一 SCADA 工程根下。填你机器上的真实路径。）
+
+## 各仓库头部坐标快照
+
+仅作核对用，**以脚本当前内容为准**——脚本改了这里就会过期。
+
+| 仓库 | `$installerOutputRoot` | `$webNodeModulesStore` | `$apiProject` |
+| --- | --- | --- | --- |
+| `Dsh_Scada` | 共享输出目录 | 有（依赖实体存放点） | `Scada.Api\Scada.Api.csproj` |
+| `Design` | 共享输出目录 | 有（`Join-Path` 拼） | `Scada.Api\Scada.Api.csproj` |
+| `Dsh_RestAPI` | 共享输出目录 | **无** | `Scada.RestApi\Scada.RestApi.csproj` |
+
+## 本机需要额外记住的
+
+- 依赖实体存放点必须在 OneDrive 之外，否则同步会拖慢/回滚。
+- 若 PowerShell 起不来（例如 `0xC0000142 STATUS_DLL_INIT_FAILED`，命令全无输出），先修 shell 再出包 —— 此时 skill 里的任何命令都执行不了。
