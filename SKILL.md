@@ -39,7 +39,7 @@ $setupProject = Join-Path $repoRoot 'Scada.Setup\Scada.Setup.csproj'
 ## 1. 跑前校验（缺一都会白跑，按顺序核）
 
 1. **dotnet 8 SDK 在**：`dotnet --version` 应报 8.x（实证跑通的是 8.0.412）。
-2. **前端依赖就位**（仅涉及前端的仓库）：`scada-web\node_modules` 存在，且是指向 `$webNodeModulesStore` 的**目录联接（Junction）**。若它是实体目录（`npm ci` 之后、或 OneDrive 同步把它还原成了实体），脚本会自己整体搬到存放点再建联接，不删你新装的依赖 —— 不需要手工处理。
+2. **前端依赖就位**（仅涉及前端的仓库）：`scada-web\node_modules` 存在，且是指向 `$webNodeModulesStore` 的**目录联接（Junction）**。确认方式：`(Get-Item -Force '<link>').LinkType` 应报 `Junction`，`(Get-Item -Force '<link>').Target` 应等于存放点。若它是实体目录（`npm ci` 之后、或 OneDrive 同步把它还原成了实体），脚本会自己整体搬到存放点再建联接，不删你新装的依赖 —— 不需要手工处理。
 3. **字体齐**：`scada-web\public\fonts` 必须有 `HarmonyOS_Sans_SC_Regular.ttf`、`_Medium.ttf`、`_Bold.ttf` 加 `LICENSE.txt`。脚本自己会校验并硬失败，这一步只是提前说清。
 4. **安装器工程在**：`$setupProject` 指向的 `Scada.Setup.csproj` 存在（个别工程可能是别的名字）。它的 `PreparePayload` 目标会把 Api 的 publish 产物加 Launcher 打成 `payload.zip` 内嵌进 EXE，并把 `wwwroot/fonts/*.ttf` 缺失当错误。
 5. **工作树状态已知**：安装包编的是**当前源码状态**，未提交的改动会进包。先看 `git status`，跟用户确认再打。
