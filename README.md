@@ -94,7 +94,20 @@ skill 会依次做：发现本工程坐标 → 五项前置校验 → 后台跑�
 2. 可选的工程根 `installer.config.json`，便于技能自动发现与核销。样板见 [`installer.config.example.json`](./installer.config.example.json)。与脚本冲突时**以脚本为准**。
 3. 流程顺序——**不落任何地方**，脚本内部顺序对所有工程一致，不要改。
 
-接入一个新工程的做法见 `SKILL.md` 第 5 节。
+接入一个新工程的做法见 `SKILL.md` 第 6 节。
+
+## 安装器图标（logo）
+
+**全系列只有一份图标，从既有安装器工程复制，不要自己画。**
+
+| 项 | 值 |
+| --- | --- |
+| 位置 | 各安装器工程的 `Assets\launcher.ico` |
+| SHA256 前缀 | `C2A3AC94E1F7C3E5` |
+| 大小 | 372526 bytes |
+| 内含帧 | 16 / 24 / 32 / 48 / 64 / 128 / 256（全 32bpp） |
+
+出包前的校验会比对 SHA256；不一致或缺失就**先复制规范图标再出包**，不要用程序生成，也不要把前端的 SVG 素材（`favicon.svg` / `sidebar-brand-logo.svg`）当安装器图标 —— 那些是网页素材，且 SVG 不能直接做 Windows 图标。细节见 `SKILL.md` 第 5 节。
 
 ## 前置条件
 

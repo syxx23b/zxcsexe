@@ -1,7 +1,7 @@
 ---
 name: zxcsexe
-description: "安装包出包流程（单入口 Build-Installer.ps1 → Setup-<project>-日期.时间.exe）：先发现本工程坐标、跑前五项校验、只走一个入口，跑后必须看日志尾并核产物，不拿 exit code 充证据。当用户要求出安装包、打包、重新发布 setup.exe，或问这套流程怎么跑、怎么接新工程时使用。不用于只构建前端调试包（那用 npm run build 即可），不用于安装后的运行排障，不用于改动 Build-Installer.ps1 的内部顺序。"
-whenToUse: "用户要求出安装包/打包/重新发布 setup.exe，或需要把新工程接入这套出包流程时。"
+description: "安装包出包流程（单入口 Build-Installer.ps1 → Setup-<project>-日期.时间.exe）：先发现本工程坐标、跑前六项校验（含安装器图标必须用规范图标、不得自造）、只走一个入口，跑后必须看日志尾并核产物，不拿 exit code 充证据。当用户要求出安装包、打包、重新发布 setup.exe，或问这套流程怎么跑、怎么接新工程、安装器图标该用哪个时使用。不用于只构建前端调试包（那用 npm run build 即可），不用于安装后的运行排障，不用于改动 Build-Installer.ps1 的内部顺序。"
+whenToUse: "用户要求出安装包/打包/重新发布 setup.exe，需要把新工程接入这套出包流程，或需要确认/补齐安装器图标时。"
 ---
 
 # 安装包出包（Setup-*.exe）
@@ -40,7 +40,8 @@ whenToUse: "用户要求出安装包/打包/重新发布 setup.exe，或需要�
 2. **依赖联接在**（仅当脚本引用了依赖实体仓；典型是 `$webNodeModulesStore`）：`cmd //c "dir <工程>\scada-web /al"` 要看到 `<JUNCTION> node_modules` 指向同步盘之外的实体仓。没有联接要素的工程跳过此项。
 3. **字体齐**（仅当脚本校验字体时）：`<工程>\scada-web\public\fonts` 必须有脚本点名的那几个 ttf 加许可文件；缺失说明前端没重新构建。
 4. **安装器工程在**：脚本的 `$setupProject` 指向的 `.csproj` 存在。它的 `PreparePayload` 负责把主项目 publish 产物（加 Launcher，若有）压进 payload，并把 `wwwroot` 资源缺失当错误。
-5. **工作树状态明确**：安装包嵌的是**当前源码状态**，未提交的改动会进包但事后无从对应。先 `git status` 确认，再打包。
+5. **图标是规范图标**：安装器工程的 `Assets\launcher.ico` 必须与全系列规范图标同源（比对 SHA256，见第 5 节）。缺失或不一致时**先从规范源复制**，不要出包、更不要自己画。
+6. **工作树状态明确**：安装包嵌的是**当前源码状态**，未提交的改动会进包但事后无从对应。先 `git status` 确认，再打包。
 
 ## 2. 执行
 
@@ -69,16 +70,48 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "<工程>\Build-Installer.ps
 - **中文报错乱码并中途退出**（PowerShell 5.1 把 UTF-8 当 ANSI 读）：`.ps1` 要存成 **UTF-8 with BOM**。
 - **带 `$` 的 PowerShell 内联命令在 Git Bash 里被吃掉**：落成 `.ps1` 再 `-File` 跑，别拼内联。
 
-## 5. 接入一个新工程
+## 5. 图标（安装器 logo）规范
+
+**一句话口径：图标全系列只有一份，从既有规范复制并核哈希；不要自己画、不要自己生成。**
+
+安装器的 `ApplicationIcon` 与桌面快捷方式图标必须用同一份规范图标。它由本地既有安装器工程提供，是唯一权威来源。
+
+### 规范坐标
+
+| 项 | 值 |
+| --- | --- |
+| 逻辑名 | 各安装器工程的 `Assets\launcher.ico` |
+| 属性名 | `.csproj` 的 `<ApplicationIcon>Assets\launcher.ico</ApplicationIcon>` |
+| SHA256 前缀 | `C2A3AC94E1F7C3E5` |
+| 大小 | 372526 bytes |
+| 内含帧 | 16 / 24 / 32 / 48 / 64 / 128 / 256，全 32bpp |
+
+**规范源**：在本地既有的 `Scada.Setup\Assets\launcher.ico` 里任取一份（多工程共用同一份，哈希一致）。**不要**把某个项目路径写死在新工程里当作唯一依据 —— 先扫描比对，再选一个一致的源。
+
+### 接入步骤
+
+1. **盘点**：扫描本地既有安装器工程，收集所有 `Assets\launcher.ico`，按 SHA256 分组。
+2. **判定规范**：多数一致的那一组即规范图标。若出现两个以上不同哈希，**停下问用户**，不要自行择一。
+3. **复制**：把规范图标复制到新工程的 `<Setup 工程>\Assets\launcher.ico`。
+4. **核验**：复制后重新计算 SHA256，必须与规范一致；用 `System.Drawing.Icon` 试解析，确认能读出且尺寸档位齐全。
+
+### 禁止事项
+
+- **不要自己画、也不要程序生成图标**（包括用 SVG 光栅化、品牌色 + 文字拼接等）——除非用户明确要求并提供了设计稿。
+- **不要把前端素材当安装器图标**：`scada-web\public` 下的 `favicon.svg` / `sidebar-brand-logo.svg` 是网页素材，SVG 不能直接做 Windows 图标；需要光栅化时先问用户。
+- **不要把图标文件提交进版本库**：它是复制来的资产，从规范源重新获取即可，与本技能一样保持"不写死工程路径"。
+
+## 6. 接入一个新工程
 
 本技能对任何工程都可用，前提是该工程补齐这套出包基建：
 
 1. 在工程根放 `Build-Installer.ps1`，照现有工程的样板改顶部坐标（主项目、安装器工程、依赖联接、输出目录），**流程顺序保持不变**。
 2. 有安装器工程（如 `Scada.Setup`），负责把 payload 压成 EmbeddedResource 并产出单文件自包含 exe。
 3. 有前端时，让构建产物进主项目 `wwwroot`；需要字体校验就在脚本里显式校验。
-4. 可选：在工程根放 `installer.config.json`（照 `installer.config.example.json`），便于技能自动发现与核销。
+4. **按第 5 节放置规范图标**（`Assets\launcher.ico`），并在跑前校验里比对哈希。
+5. 可选：在工程根放 `installer.config.json`（照 `installer.config.example.json`），便于技能自动发现与核销。
 
-## 6. 边界（不做的事）
+## 7. 边界（不做的事）
 
 - 不改历史包文件名、不删输出目录里的旧产物（改名或清理要用户点名）。
 - 不注册计划任务、不加定时/守护出包脚本：只在用户要求时跑一次。

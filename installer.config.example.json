@@ -32,6 +32,14 @@
     "singleFile": true
   },
 
+  "icon": {
+    "$comment": "安装器图标必须来自既有安装器工程的 Assets\\launcher.ico（全系列同一份）。不要自己画、不要用前端素材。出包前比对 sha256Prefix。",
+    "path": "Scada.Setup\\Assets\\launcher.ico",
+    "sha256Prefix": "C2A3AC94E1F7C3E5",
+    "sizeBytes": 372526,
+    "frames": [16, 24, 32, 48, 64, 128, 256]
+  },
+
   "verify": {
     "successMarker": "Installer created:",
     "logDir": "runlogs",
