@@ -1,0 +1,44 @@
+{
+  "$comment": "可选的工程坐标声明，放在工程根。没有这个文件时，出包技能会改读 Build-Installer.ps1 顶部的同名变量。与脚本冲突时以脚本为准。字段都可省略。",
+
+  "version": 1,
+
+  "entry": "Build-Installer.ps1",
+  "outputRoot": "C:\\Users\\syxxz\\OneDrive\\SCADA\\App_Output",
+  "nameTag": null,
+
+  "frontend": {
+    "dir": "scada-web",
+    "buildCommand": "npm run build",
+    "nodeModulesStore": "C:\\node_modules\\<project>\\scada-web\\node_modules",
+    "requiredFonts": [
+      "HarmonyOS_Sans_SC_Regular.ttf",
+      "HarmonyOS_Sans_SC_Medium.ttf",
+      "HarmonyOS_Sans_SC_Bold.ttf",
+      "LICENSE.txt"
+    ]
+  },
+
+  "payload": {
+    "project": "Scada.Api\\Scada.Api.csproj",
+    "launcher": "Scada.Launcher\\Scada.Launcher.csproj",
+    "selfContained": false
+  },
+
+  "setup": {
+    "project": "Scada.Setup\\Scada.Setup.csproj",
+    "executable": "Scada.Setup.exe",
+    "selfContained": true,
+    "singleFile": true
+  },
+
+  "verify": {
+    "successMarker": "Installer created:",
+    "logDir": "runlogs",
+    "cleanup": [
+      "bin",
+      "obj",
+      "scada-web/dist"
+    ]
+  }
+}
